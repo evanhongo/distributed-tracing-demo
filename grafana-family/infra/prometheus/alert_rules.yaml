@@ -1,0 +1,27 @@
+groups:
+  - name: demo
+    rules:
+      - alert: too_many_request
+        # metric 'request_count' is defined by your app
+        expr: request_count > 100
+        for: 10s
+        labels:
+          severity: warning
+        annotations:
+          summary: "request_count is too over!"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} has over 100 for more than 10 seconds."
+      - alert: service_down
+        expr: up == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance {{ $labels.instance }} down"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 2 minutes."
+      - alert: disk_space_free_10_percent
+        expr: node_filesystem_free_percent <= 10
+        labels:
+          severity: warning
+        annotations:
+          summary: "Instance [{{ $labels.instance }}] has 10% or less free disk space"
+          description: "[{{ $labels.instance }}] has only {{ $value }}% or less free."
