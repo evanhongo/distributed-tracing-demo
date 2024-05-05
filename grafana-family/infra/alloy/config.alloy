@@ -1,0 +1,54 @@
+logging {
+  level  = "info"
+  format = "json"
+}
+
+discovery.docker "input_docker_containers" {
+  host = "unix:///var/run/docker.sock"
+  refresh_interval = "1m"  
+}
+
+discovery.relabel "input_docker_containers" {
+  targets = concat(discovery.docker.input_docker_containers.targets, [])
+  
+  rule {
+    target_label = "host"
+    replacement  = constants.hostname
+  }
+  
+  rule {
+    source_labels = ["__meta_docker_container_name"]    
+    target_label  = "container"
+    regex         = "/(.*)"
+    replacement = "$1"
+  }
+}
+
+loki.source.docker "input_docker_containers" {
+  host       = "unix:///var/run/docker.sock"
+  targets    = discovery.relabel.input_docker_containers.output
+  forward_to = [loki.process.processor_docker_containers.receiver]  
+  refresh_interval = "5s"
+}
+
+loki.process "processor_docker_containers" {
+  stage.structured_metadata {
+    values = {
+      container  = "container",
+    }
+  }
+
+  stage.label_keep {
+    values = ["host"]
+  }
+
+  stage.decolorize {}
+
+  forward_to = [loki.write.output_loki.receiver]
+}
+
+loki.write "output_loki" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}
