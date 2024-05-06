@@ -9,11 +9,11 @@ const main = () => {
   const app = express();
   app.get("/ping", (req, res) => {
     startSpan({ req, res }, async () => {
-      // business logic 
+      // business logic
       await sleep(2000);
       const output = {};
       propagation.inject(context.active(), output);
-      await fetch("http://localhost:5000/ping2", {
+      await fetch("http://app2:5000/ping2", {
         headers: { "trace-context": JSON.stringify(output) },
       });
       logger.info("ping");

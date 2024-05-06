@@ -24,7 +24,7 @@ const provider = new NodeTracerProvider({
 provider.addSpanProcessor(
   new BatchSpanProcessor(
     new JaegerExporter({
-      endpoint: process.env.JAEGER_ENDPOINT
+      endpoint: process.env.JAEGER_ENDPOINT,
     })
   )
 );
@@ -38,10 +38,7 @@ registerInstrumentations({
     new WinstonInstrumentation({
       // Optional hook to insert additional context to log metadata.
       // Called after trace context is injected to metadata.
-      logHook: (span, record) => {
-        record["resource.service.name"] =
-          provider.resource.attributes["service.name"];
-      },
+      logHook: (span, record) => {},
     }),
     // other instrumentations
   ],
